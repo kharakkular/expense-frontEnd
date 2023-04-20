@@ -1,0 +1,104 @@
+.main-container {
+    /* background-color: black; */
+    /* border: 1px solid white; */
+    border-radius: 10px;
+    min-width: 80%;
+    min-height: 45vh;
+    padding: 15px;
+    position: relative;
+    box-shadow: 0 0 15px 4px rgba(0,0,0,.5);
+}
+
+.header {
+    height: 40px;
+    background-color: rgb(54, 130, 130);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    border-radius: 10px 10px 0 0;
+}
+
+.section-top,
+.section-products {
+    display: flex;
+    width: 97%;
+    min-height: 75px;
+    /* border: 1px solid white; */
+    margin-top: 40px;
+    padding: 10px ;
+}
+
+.section-products {
+    margin-top: 20px;
+    flex-direction: column;
+}
+
+.partition {
+    width: 100%;
+    height: 1px;
+    background-color: #445161;
+}
+
+.products {
+    display: flex;
+    margin: 10px;
+}
+
+.add-products {
+    display: flex;
+    width: 100%;
+    height: 3rem;
+    margin: 20px;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.add-symbol {
+    display: flex;
+    width: 150px;
+    height: 3rem;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgb(54, 130, 130);
+    /* border-radius: 50%; */
+    cursor: pointer;
+    padding: 20px;
+    border-radius: 30px;
+}
+
+.add {
+    background-color: rgba(0,0,0,.5);
+}
+
+.submit {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 3rem;
+    background-color: rgb(54, 130, 130);
+    padding: 20px;
+    border-radius: 30px;
+    cursor: pointer;
+}
+
+.input-field {
+    background-color: black;
+    color: white;
+    border: none;
+    height: 2rem;
+    font-size: 1.5rem;
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 0 10px 4px rgba(0,0,0,.5);
+    margin-right: 10px;
+}
+
+.input-field:focus {
+    border: 1px solid #323f4f;
+    outline: none;
+}
+
+.date-input {
+    /* flex: auto; */
+}
