@@ -10,6 +10,9 @@
 }
 
 .header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     height: 40px;
     background-color: rgb(54, 130, 130);
     position: absolute;
@@ -56,14 +59,14 @@
 
 .add-symbol {
     display: flex;
-    width: 150px;
+    width: 180px;
     height: 3rem;
     align-items: center;
     justify-content: space-between;
     background-color: rgb(54, 130, 130);
     /* border-radius: 50%; */
     cursor: pointer;
-    padding: 20px;
+    padding: 0 30px;
     border-radius: 30px;
 }
 

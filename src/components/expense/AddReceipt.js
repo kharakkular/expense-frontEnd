@@ -8,32 +8,26 @@ const AddReceipt = (props) => {
         barcode: '',
         location: '',
         date: '',
-        products: []
+        products: [{
+            productName: '',
+            productCode: '',
+            productPrice: ''
+        }]
     });
+ 
+    console.log({receipt});
 
-    // const [productCount, setProductCount] = useState(0);
-    const [products, setProducts] = useState([{
-        productName: '',
-        productCode: '',
-        productPrice: 0.00
-    }]);
-
-    console.log({products, receipt});
-
-    const productChangeHandler = (index, event) => {
-        console.log({index, name: event.target.name});
-        const prevProducts = [...products];
-        prevProducts[index][event.target.name] = event.target.value;
-        setProducts([...prevProducts]);
-    }
-
-    const receiptInfoChangeHandler = (e) => {
+    const receiptInfoChangeHandler = (index, e) => {
         e.preventDefault();
         console.log({event: e.target.name});
         setReceipt((prev) => {
             console.log({...prev});
             const temp = {...prev};
-            temp[e.target.name] = e.target.value;
+            if(e.target.name === 'productName' || e.target.name === 'productCode' || e.target.name === 'productPrice') {
+                temp.products[index][e.target.name] = e.target.value;
+            } else {
+                temp[e.target.name] = e.target.value;
+            }
             return temp;
         } );
     }
@@ -45,36 +39,59 @@ const AddReceipt = (props) => {
             productCode: '',
             productPrice: 0.00
         };
-        setProducts([...products, newProduct]);
+        const tempProducts = [...receipt.products, newProduct];
+        setReceipt({ ...receipt, products: [...tempProducts]});
     }
 
-    const submitReceiptButtonHandler = (e) => {
+    const submitReceiptButtonHandler = async (e) => {
         e.preventDefault();
         for (const key in receipt) {
             console.log(`Value of Receipt's ${key} is ${receipt[key]}`);
             if(receipt[key] === '') return;
         }
-        setReceipt({ ...receipt, products: [...products]});
+        try {
+            const postData = await fetch('http://localhost:8080/api/expense', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(receipt)
+            });
+            const response = await postData.json();
+            console.log(`Response is ${response}`);
+            setReceipt({
+                barcode: '',
+                location: '',
+                date: '',
+                products: [{
+                    productName: '',
+                    productCode: '',
+                    productPrice: ''
+                }]
+            });
+        } catch (error) {
+            console.error(`Error while sending post request is: `, {error});
+        }
     }
 
     return <Fragment>
         <div className={classes["main-container"]}>
             <header className={classes.header}>
-                Add receipt
+                <h2>Add Receipt Info</h2>
             </header>
             <div className={classes["section-top"]}>
-                <input type="text" name="barcode" onChange={receiptInfoChangeHandler} placeholder="Receipt No" className={classes["input-field"]}/>
-                <input type="text" name="location" onChange={receiptInfoChangeHandler} placeholder="Location" className={classes["input-field"]}/>
-                <input type="date" name="date" onChange={receiptInfoChangeHandler} placeholder="Date" className={classes["input-field"]}/>
+                <input type="text" name="barcode" onChange={(e) => receiptInfoChangeHandler(null, e)} placeholder="Receipt No" className={classes["input-field"]} value={receipt.barcode}/>
+                <input type="text" name="location" onChange={(e) => receiptInfoChangeHandler(null, e)} placeholder="Location" className={classes["input-field"]} value={receipt.location}/>
+                <input type="date" name="date" onChange={(e) => receiptInfoChangeHandler(null, e)} placeholder="Date" className={classes["input-field"]} value={receipt.date}/>
             </div>
             <div className={classes.partition}></div>
             <div className={classes["section-products"]}>
-                {products.map((val, index) => {
+                {receipt.products.map((val, index) => {
                     return (
                         <div key={index} className={classes.products}>
-                            <input type="text" name="productName" onChange={(event) => productChangeHandler(index, event)} placeholder="Name" className={classes["input-field"]} value={val.productName}/>
-                            <input type="text" name="productPrice" onChange={(event) => productChangeHandler(index, event)} placeholder="Price" className={classes["input-field"]} value={val.productPrice}/>
-                            <input type="text" name="productCode" onChange={(event) => productChangeHandler(index, event)} placeholder="Code" className={classes["input-field"]} value={val.productCode}/>
+                            <input type="text" name="productName" onChange={(event) => receiptInfoChangeHandler(index, event)} placeholder="Name" className={classes["input-field"]} value={val.productName}/>
+                            <input type="text" name="productPrice" onChange={(event) => receiptInfoChangeHandler(index, event)} placeholder="Price" className={classes["input-field"]} value={val.productPrice}/>
+                            <input type="text" name="productCode" onChange={(event) => receiptInfoChangeHandler(index, event)} placeholder="Code" className={classes["input-field"]} value={val.productCode}/>
                         </div>
                     );
                 })}
