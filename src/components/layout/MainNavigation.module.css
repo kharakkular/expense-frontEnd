@@ -6,7 +6,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    background-color: rgb(54, 130, 130);
+    /* background-color: rgb(54, 130, 130); */
     color: white;
     min-height: 50px;
     z-index: 1;

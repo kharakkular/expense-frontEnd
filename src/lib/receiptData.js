@@ -89,6 +89,10 @@ export function getUploadedReceiptData(receiptData) {
                     tempStr += line.words[i] + " ";
                     i++;
                 }
+                // if some numerics appear after name which is not code. So to avoid that by incrementing value of i and reach code for next step
+                while(line.words[i].length !== 12) {
+                    i++;
+                }
                 item.name = tempStr;
             }
             if(item.code === '' && line.words[i].length === 12 && typeof parseFloat(line.words[i]) == 'number'){   // checks for code of the item
@@ -105,7 +109,7 @@ export function getUploadedReceiptData(receiptData) {
                 items.push(item);
             }
 
-            console.log('Value of items is ', {items});
+            // console.log('Value of items is ', {items});
         }
 
         // Get Subtotal value
