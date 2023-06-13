@@ -74,6 +74,14 @@ const ScanReceipt = (props) => {
           }).catch(err => console.log(err.message));
     }
     
+    const closeFileHandler = (e) => {
+        URL.revokeObjectURL(imageFile);
+        setImageFile(null);
+        fileLabelName.current.innerText = 'Upload Receipt';
+        setData(null);
+        setContentArr(null);
+    }
+
     console.log({contentArr, extractedReceiptData});
 
     return (
@@ -87,6 +95,9 @@ const ScanReceipt = (props) => {
                     <input name="uploadedImage" type="file" className={classes.file} id="file" onChange={uploadImage}/>
                     {/* <label htmlFor="file" >{fileLabelName}</label> */}
                     <label htmlFor="file" ref={fileLabelName} >Upload Receipt</label>
+                    {imageFile && <span className={`material-symbols-outlined ${classes['closeIcon']}`} onClick={closeFileHandler}>
+                        close
+                    </span>}
                 </div>
                 { imageFile && <div className={classes.previewImage}>
                     <img src={imageFile} alt="Uploaded receipt" />
