@@ -32,6 +32,10 @@ const MainNavigation = (props) => {
         }
     }
 
+    const handleNavigationLink = (e) => {
+        mainNavigation.current.style.width = '0';
+    }
+
     return (
         <Fragment>
             {/* <header className={classes['main-header']}>
@@ -63,7 +67,7 @@ const MainNavigation = (props) => {
                         {navItems.map((item, index) => {
                             return (
                                 <li key={item.id} className={classes['nav-item']}>
-                                    <Link to={item.route} className={classes['nav-item__link']}>{item.name}</Link>
+                                    <Link to={item.route} onClick={handleNavigationLink} className={classes['nav-item__link']}>{item.name}</Link>
                                 </li>
                             );
                         })}

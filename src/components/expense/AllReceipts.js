@@ -30,6 +30,11 @@ const AllReceipts = (props) => {
     return (
         <Fragment>
             <div className={classes.container}>
+                <header className={classes['all-receipts-header']}>
+                    <div className={classes.heading}>
+                        <span>Receipts</span>
+                    </div>
+                </header>
                 {loadedReceipts.expenses.map((item, index) => {
                     let initialValue = 0;
                     console.log({item});
@@ -38,15 +43,28 @@ const AllReceipts = (props) => {
                             <header className={classes['card-header']}>
                                 <h1>{item.store.toUpperCase()}</h1>
                                 <div className={classes.break}></div>
-                                <h5>{item.location}</h5>
+                                <p>{item.location}</p>
                             </header>
+                            <div className={classes.divider}></div>
                             <main className={classes['card-body']}>
-                                <p className={classes['card-item']}>Date Purchased: {new Date(item.datePurchased).toDateString()}</p>
-                                <div className={classes.break}></div>
-                                <p className={classes['card-item']}>Number of Products: {item.products.length}</p>
-                                <div className={classes.break}></div>
-                                <p className={classes['card-item']}>Total Price: {item.products.reduce((prevVal, currentVal) => prevVal + currentVal.price, initialValue)}</p>
+                                <div className={classes['items']}>
+                                    <span className={classes['']}>Date#</span>
+                                    <span className={classes['item-value']}>{new Date(item.datePurchased).toDateString()}</span>
+                                </div>
+                                <div className={classes['items']}>
+                                    <span className={classes['']}>Count#</span>
+                                    <span className={classes['item-value']}>{item.products.length}</span>
+                                </div>
+                                <div className={classes['items']}>
+                                    <span className={classes['']}>Total $</span>
+                                    <span className={classes['item-value']}>
+                                        {item.products.reduce((prevVal, currentVal) => prevVal + currentVal.price, initialValue)}
+                                    </span>
+                                </div>
                             </main>
+                            <div className={classes['card-footer']}>
+                                <button>See Details</button>
+                            </div>
                         </Card>);
                 })}
             </div>

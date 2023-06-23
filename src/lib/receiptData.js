@@ -4,7 +4,9 @@ const parameters = {
     SUBTOTAL: 'SUBTOTAL',
     TOTAL: 'TOTAL',
     GST: 'GST',
-    HST: 'HST'
+    HST: 'HST',
+    BARCODE: 'TC#',
+    DATE: /^[0-9]{1,2}\/[0-9]{1,2}\/[0-9]{2}$/
 };
 
 // getting indexex of parameters
@@ -16,6 +18,8 @@ function getIndexRelatedToParameters(receiptData) {
     let indexOfFirstItem = undefined;
     let indexOfGst = undefined;
     let indexOfHst = undefined;
+    let indexOfReceiptBarcode = undefined;
+    let indexOfDate = undefined;
 
     if(receiptData !== null) {
         receiptData.forEach((line, index) => {
@@ -38,17 +42,43 @@ function getIndexRelatedToParameters(receiptData) {
             if(line.words[0] === parameters.HST) {
                 indexOfHst = index;
             }
+            if(line.words[0] === parameters.BARCODE) {
+                indexOfReceiptBarcode = index;
+            }
+            if(parameters.DATE.test(line.words[0])) {
+                indexOfDate = index;
+            }
         });
     }
 
-    return { indexOfStore, indexOfLocation, indexOfFirstItem, indexOfSubtotal, indexOfTotal, indexOfGst, indexOfHst };
+    return { 
+        indexOfStore, 
+        indexOfLocation, 
+        indexOfFirstItem, 
+        indexOfSubtotal, 
+        indexOfTotal, 
+        indexOfGst, 
+        indexOfHst,
+        indexOfReceiptBarcode,
+        indexOfDate
+    };
 }
 
 export function getUploadedReceiptData(receiptData) {
 
-    const { indexOfStore, indexOfLocation, indexOfFirstItem, indexOfSubtotal, indexOfTotal, indexOfGst, indexOfHst } = getIndexRelatedToParameters(receiptData);
+    const { 
+        indexOfStore, 
+        indexOfLocation, 
+        indexOfFirstItem, 
+        indexOfSubtotal, 
+        indexOfTotal, 
+        indexOfGst, 
+        indexOfHst,
+        indexOfReceiptBarcode,
+        indexOfDate
+    } = getIndexRelatedToParameters(receiptData);
 
-    console.log('Index values for the following propertiesa are:', {indexOfStore, indexOfLocation, indexOfFirstItem, indexOfSubtotal, indexOfTotal});
+    console.log('Index values for the following propertiesa are:', {indexOfStore, indexOfLocation, indexOfFirstItem, indexOfSubtotal, indexOfTotal, indexOfReceiptBarcode, indexOfDate});
     let store = '';
     let address = '';
     const items = [];
@@ -56,6 +86,8 @@ export function getUploadedReceiptData(receiptData) {
     let subTotal = 0.00;
     let gstValue = 0.00;
     let hstValue = 0.00;
+    let receiptBarcode = '';
+    let date = '';
 
     if(receiptData !== null) {
         receiptData.forEach((line, index) => {
@@ -135,8 +167,18 @@ export function getUploadedReceiptData(receiptData) {
             if(index === indexOfTotal) {
                 total = parseFloat(line.words[1].substring(1));
             }
+
+            // Get receipt barcode
+            if(index === indexOfReceiptBarcode) {
+                receiptBarcode = line.words.join('');
+            }
+
+            // Get receipt date
+            if(index === indexOfDate) {
+                date = line.words[0];
+            }
         });
     }
 
-    return { store, address, items, total, subTotal, gstValue, hstValue };
+    return { store, address, items, total, subTotal, gstValue, hstValue, receiptBarcode, date };
 }

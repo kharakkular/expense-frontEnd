@@ -1,29 +1,37 @@
 import { Fragment, useEffect, useRef, useState } from "react";
-
+import { useNavigate } from 'react-router-dom';
 import Tesseract from "tesseract.js";
 // import image from '../../../images/Walmart-receipt.png';
 import classes from './ScanReceipt.module.css';
 import {getUploadedReceiptData} from '../../../lib/receiptData';
+import useHttp from "../../../hooks/use-http";
+import { sendReceiptData } from '../../../lib/api';
+import Spinner from "../../ui/Spinner";
 
 const ScanReceipt = (props) => {
 
     const [data, setData] = useState(null);
     const [contentArr, setContentArr] = useState([]);
     const [extractedReceiptData, setExtractedReceiptData] = useState({
+        receiptBarcode: '',
         store: '',
         address: '',
         items: [],
         subTotal: 0.00,
-        total: 0.00
+        total: 0.00,
+        date: ''
     });
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
     const [imageFile, setImageFile] = useState(null);           // This is for storing the image for temporary viewing it
     // const [fileLabelName, setFileLabelName] = useState('Upload Receipt');      // This has been implemented using useRef
     const fileLabelName = useRef();
     const items = [...extractedReceiptData.items];
     // const [address, setAddress] = useState(undefined);
+    const { sendRequest, error, status } = useHttp(sendReceiptData);
 
     useEffect(() => {
-        const {store, address, items, subTotal, total } =  getUploadedReceiptData(contentArr);
+        const { store, address, items, subTotal, total, receiptBarcode, date } =  getUploadedReceiptData(contentArr);
         // setStore(store);
         // setAddress(address);
         setExtractedReceiptData({
@@ -31,9 +39,18 @@ const ScanReceipt = (props) => {
             address: address,
             items: [...items],
             subTotal: subTotal,
-            total: total
+            total: total,
+            receiptBarcode: receiptBarcode,
+            date: date
         });
     }, [contentArr]);
+
+    useEffect(() => {
+        console.log({error});
+        if(error === null && status === "completed") {
+            navigate("/receipts");
+        }
+    }, [error, status, navigate]);
 
     const onChangeExtractedReceiptDataHandler = (e, item) => {
         console.log('Value of input field changed is ', e.target.value);
@@ -51,11 +68,12 @@ const ScanReceipt = (props) => {
     }
 
     const uploadImage = (e) => {
-        console.log({file1: e.target.files[0], fileName: e.target.files[0].name});
+        // console.log({file1: e.target.files[0], fileName: e.target.files[0].name});
         // setFileLabelName(e.target.files[0].name);
-        console.log('********** fileLabelName is ', fileLabelName);
+        // console.log('********** fileLabelName is ', fileLabelName);
         fileLabelName.current.innerText = e.target.files[0].name;
         setImageFile(URL.createObjectURL(e.target.files[0]));
+        setLoading(true);
         Tesseract.recognize(
             e.target.files[0],
             'eng'
@@ -71,18 +89,33 @@ const ScanReceipt = (props) => {
             });
             setContentArr([...tempArr]);
             console.log(data.data.lines);
+            setLoading(false);
           }).catch(err => console.log(err.message));
     }
     
     const closeFileHandler = (e) => {
         URL.revokeObjectURL(imageFile);
         setImageFile(null);
-        fileLabelName.current.innerText = 'Upload Receipt';
+        fileLabelName.current.innerText = 'Select Receipt';
         setData(null);
         setContentArr(null);
     }
 
-    console.log({contentArr, extractedReceiptData});
+    const formSubmitHandler = (event) => {
+        event.preventDefault();
+        const obj = {
+            barcode: extractedReceiptData.receiptBarcode,
+            store: "Walmart",
+            location: extractedReceiptData.address,
+            products: [...extractedReceiptData.items],
+            datePurchased: extractedReceiptData.date,
+            total: extractedReceiptData.total
+        };
+        console.log('Value of obj is ', {obj});
+        sendRequest(obj);
+    }
+
+    console.log({contentArr, extractedReceiptData, loading, status});
 
     return (
         <Fragment>
@@ -94,15 +127,15 @@ const ScanReceipt = (props) => {
                 <div className={classes['file-input']}>
                     <input name="uploadedImage" type="file" className={classes.file} id="file" onChange={uploadImage}/>
                     {/* <label htmlFor="file" >{fileLabelName}</label> */}
-                    <label htmlFor="file" ref={fileLabelName} >Upload Receipt</label>
+                    <label htmlFor="file" ref={fileLabelName} >Select Receipt</label>
                     {imageFile && <span className={`material-symbols-outlined ${classes['closeIcon']}`} onClick={closeFileHandler}>
                         close
                     </span>}
                 </div>
-                { imageFile && <div className={classes.previewImage}>
+                { !loading && imageFile && <div className={classes.previewImage}>
                     <img src={imageFile} alt="Uploaded receipt" />
                 </div>}
-                {extractedReceiptData.items.length > 0 &&
+                {!loading && extractedReceiptData.items.length > 0 &&
                  <div className={classes['input-field__container']}>
                     <div className={classes['store-information']}>
                         <div className={classes['input-field__block']}>
@@ -110,8 +143,16 @@ const ScanReceipt = (props) => {
                             <input type="text" value={extractedReceiptData.store} name="store" onChange={(e)=> onChangeExtractedReceiptDataHandler(e, null)} className={classes['input-field']}/>
                         </div>
                         <div className={classes['input-field__block']}>
+                            <label htmlFor="receiptBarcode">Receipt Barcode</label>
+                            <input type="text" value={extractedReceiptData.receiptBarcode} name="receiptBarcode" onChange={(e)=> onChangeExtractedReceiptDataHandler(e, null)} className={classes['input-field']}/>
+                        </div>
+                        <div className={classes['input-field__block']}>
                             <label htmlFor="address">Store Address</label>
                             <input type="text" value={extractedReceiptData.address} name="address" onChange={(e) => onChangeExtractedReceiptDataHandler(e, null)} className={classes['input-field']}/>
+                        </div>
+                        <div className={classes['input-field__block']}>
+                            <label htmlFor="date">Receipt Date</label>
+                            <input type="text" value={extractedReceiptData.date} name="date" onChange={(e) => onChangeExtractedReceiptDataHandler(e, null)} className={classes['input-field']}/>
                         </div>
                         <div className={classes['input-field__block']}>
                             <label htmlFor="Subtotal">Subtotal</label>
@@ -142,6 +183,21 @@ const ScanReceipt = (props) => {
                     </div>
                     
                 </div>}
+                {extractedReceiptData.receiptBarcode !== '' && extractedReceiptData.receiptBarcode.length === 23 && 
+                    <div>
+                        <form onSubmit={formSubmitHandler}>
+                            <button type="submit" className={classes['submit-button']}>Upload Receipt</button>
+                        </form>        
+                    </div>
+                }
+                {
+                    loading
+                     && 
+                    <div className={classes.spinner}>
+                        <Spinner />
+                    </div>
+                
+                }
             </div>
         </Fragment>
     );

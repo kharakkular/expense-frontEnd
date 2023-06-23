@@ -1,8 +1,9 @@
-const url = 'http://10.0.0.227:8081/api/expense';
+// const url = 'http://10.0.0.227:8080/api/expense';
+const localURL = 'http://localhost:8080/api';
 
 export async function getAllReceipts() {
     console.log('From api.js');
-    const response = await fetch(url);
+    const response = await fetch(`${localURL}/expense`);
     const data = await response.json();
     console.log('Response from API.json is ', {response, data});
 
@@ -15,7 +16,7 @@ export async function getAllReceipts() {
 
 export async function sendReceiptData(data) {
 
-    const response = await fetch(url, {
+    const response = await fetch(`${localURL}/expense`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
