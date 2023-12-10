@@ -5,7 +5,7 @@ import Tesseract from "tesseract.js";
 import classes from './ScanReceipt.module.css';
 import {getUploadedReceiptData} from '../../../lib/receiptData';
 import useHttp from "../../../hooks/use-http";
-import { sendReceiptData } from '../../../lib/api';
+import { sendReceiptDataInMultipartFormData } from '../../../lib/api';
 import Spinner from "../../ui/Spinner";
 
 const ScanReceipt = (props) => {
@@ -23,12 +23,14 @@ const ScanReceipt = (props) => {
     });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    
     const [imageFile, setImageFile] = useState(null);           // This is for storing the image for temporary viewing it
+    const [imageFileURL, setImageFileURL] = useState(null);           
     // const [fileLabelName, setFileLabelName] = useState('Upload Receipt');      // This has been implemented using useRef
     const fileLabelName = useRef();
     const items = [...extractedReceiptData.items];
     // const [address, setAddress] = useState(undefined);
-    const { sendRequest, error, status } = useHttp(sendReceiptData);
+    const { sendRequest, error, status } = useHttp(sendReceiptDataInMultipartFormData);
 
     useEffect(() => {
         const { store, address, items, subTotal, total, receiptBarcode, date } =  getUploadedReceiptData(contentArr);
@@ -46,7 +48,9 @@ const ScanReceipt = (props) => {
     }, [contentArr]);
 
     useEffect(() => {
-        console.log({error});
+        if(error){
+            console.log({error});
+        }
         if(error === null && status === "completed") {
             navigate("/receipts");
         }
@@ -70,9 +74,10 @@ const ScanReceipt = (props) => {
     const uploadImage = (e) => {
         // console.log({file1: e.target.files[0], fileName: e.target.files[0].name});
         // setFileLabelName(e.target.files[0].name);
-        // console.log('********** fileLabelName is ', fileLabelName);
+        console.log('********** files[0] is ', {file: e.target.files[0]});
         fileLabelName.current.innerText = e.target.files[0].name;
-        setImageFile(URL.createObjectURL(e.target.files[0]));
+        setImageFileURL(URL.createObjectURL(e.target.files[0]));
+        setImageFile(e.target.files[0]);
         setLoading(true);
         Tesseract.recognize(
             e.target.files[0],
@@ -88,14 +93,16 @@ const ScanReceipt = (props) => {
                 tempArr.push({...tempLine});
             });
             setContentArr([...tempArr]);
-            console.log(data.data.lines);
+            // console.log(data.data.lines);
             setLoading(false);
-          }).catch(err => console.log(err.message));
+          })
+          .catch(err => console.log(err.message));
     }
     
     const closeFileHandler = (e) => {
         URL.revokeObjectURL(imageFile);
         setImageFile(null);
+        setImageFileURL(null);
         fileLabelName.current.innerText = 'Select Receipt';
         setData(null);
         setContentArr(null);
@@ -103,20 +110,46 @@ const ScanReceipt = (props) => {
 
     const formSubmitHandler = (event) => {
         event.preventDefault();
-        const obj = {
-            barcode: extractedReceiptData.receiptBarcode,
-            store: "Walmart",
-            location: extractedReceiptData.address,
-            products: [...extractedReceiptData.items],
-            datePurchased: extractedReceiptData.date,
-            total: extractedReceiptData.total
-        };
-        console.log('Value of obj is ', {obj});
-        sendRequest(obj);
+        const formData = new FormData();
+        console.log('Filelabelname is +++++++++++++++++ ' + fileLabelName.current.innerText);
+        console.log({receiptData: extractedReceiptData});
+        const file = {
+            name: fileLabelName.current.innerText,
+            description: 'Walmart'
+        }
+        formData.append('barcode', extractedReceiptData.receiptBarcode);
+        formData.append('store', 'Walmart');
+        formData.append('location', extractedReceiptData.address);
+        formData.append('products', JSON.stringify(extractedReceiptData.items));
+        formData.append('datePurchased', extractedReceiptData.date);
+        formData.append('total', extractedReceiptData.total);
+        formData.append('file', JSON.stringify(file));
+        formData.append('imageFile', imageFile);
+        // const obj = {
+        //     barcode: extractedReceiptData.receiptBarcode,
+        //     store: "Walmart",
+        //     location: extractedReceiptData.address,
+        //     products: [...extractedReceiptData.items],
+        //     datePurchased: extractedReceiptData.date,
+        //     total: extractedReceiptData.total,
+        //     file: {
+        //         name: fileLabelName,
+        //         description: 'Walmart',
+        //         content: imageFile
+        //     }
+        // };
+        // console.log('Value of obj is ', {obj});
+        // for (const iterator of formData.entries()) {
+        //     console.log(`Value is ${iterator}`);
+        // }
+        sendRequest(formData);
+        URL.revokeObjectURL(imageFile);
+        setImageFile(null);
+        setImageFileURL(null);
     }
 
-    console.log({contentArr, extractedReceiptData, loading, status});
-
+    // console.log({contentArr, extractedReceiptData, loading, status});
+    console.log("image file" + imageFile);
     return (
         <Fragment>
             <div className={classes['scan-body']}>
@@ -133,7 +166,7 @@ const ScanReceipt = (props) => {
                     </span>}
                 </div>
                 { !loading && imageFile && <div className={classes.previewImage}>
-                    <img src={imageFile} alt="Uploaded receipt" />
+                    <img src={imageFileURL} alt="Uploaded receipt" />
                 </div>}
                 {!loading && extractedReceiptData.items.length > 0 &&
                  <div className={classes['input-field__container']}>
@@ -199,6 +232,10 @@ const ScanReceipt = (props) => {
                 
                 }
             </div>
+            {/** This content is added for testing imagefile data */}
+            {/* <div>
+                <img src={imageFile} alt="temp" />
+            </div> */}
         </Fragment>
     );
 }

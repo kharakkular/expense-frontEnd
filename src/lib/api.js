@@ -25,3 +25,15 @@ export async function sendReceiptData(data) {
     });
     return response.json();
 }
+
+export async function sendReceiptDataInMultipartFormData(data) {
+
+    const response = await fetch(`${localURL}/expense`, {
+        method: "POST",
+        // headers: {
+        //     "Content-Type": "multipart/form-data"
+        // },
+        body: data
+    });
+    return response.json();
+}

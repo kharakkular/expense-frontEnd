@@ -94,14 +94,16 @@ export function getUploadedReceiptData(receiptData) {
             // for finding the store value
             if(index === indexOfStore) {
                 store = line.words[1];
+                return;
             }
             // for finding Location and address value
             if(index > indexOfStore && index <= (indexOfLocation+2)) {
                 address += line.words.join(' ') + ' ';
+                return;
             }
             // for getting the receipt items
             if(index >= indexOfFirstItem && index < indexOfSubtotal) {
-                // Declaring a item
+                // Declaring an item
                 let item = {
                     id: Math.random() * 100,
                     name: '',
@@ -121,17 +123,17 @@ export function getUploadedReceiptData(receiptData) {
                 if( item.name === '') {
                     
                     let tempStr = '';         // item names are concatenated in the tempStr
-                    while(line.words[i].length !== 12 && isNaN(line.words[i])){             // checks for words till code of the item
+                    while(line.words[i].length < 12 && isNaN(line.words[i])){             // checks for words till code of the item
                         tempStr += line.words[i] + " ";
                         i++;
                     }
                     // if some numerics appear after name which is not code. So to avoid that by incrementing value of i and reach code for next step
-                    while(line.words[i].length !== 12) {
+                    while(line.words[i].length < 12) {
                         i++;
                     }
                     item.name = tempStr;
                 }
-                if(item.code === '' && line.words[i].length === 12 && typeof parseFloat(line.words[i]) == 'number'){   // checks for code of the item
+                if(item.code === '' && line.words[i].length >= 12 && typeof parseFloat(line.words[i]) == 'number'){   // checks for code of the item
                     item.code = line.words[i];
                     i++;
                 }
@@ -144,38 +146,44 @@ export function getUploadedReceiptData(receiptData) {
                 } else {
                     items.push(item);
                 }
-    
+                return;
                 // console.log('Value of items is ', {items});
             }
     
             // Get Subtotal value
             if(index === indexOfSubtotal) {
                 subTotal = parseFloat(line.words[1].substring(1));
+                return;
             }
     
             // Get GST value if present
             if(indexOfGst !== undefined && index === indexOfGst) {
                 gstValue = parseFloat(line.words[line.words.length-1].substring(1));
+                return;
             }
     
             // Get HST value if present
             if(indexOfHst !== undefined && index === indexOfHst) {
                 hstValue = parseFloat(line.words[line.words.length-1].substring(1));
+                return;
             }
     
             // Get total value of Receipt
             if(index === indexOfTotal) {
                 total = parseFloat(line.words[1].substring(1));
+                return;
             }
 
             // Get receipt barcode
             if(index === indexOfReceiptBarcode) {
                 receiptBarcode = line.words.join('');
+                return;
             }
 
             // Get receipt date
             if(index === indexOfDate) {
                 date = line.words[0];
+                return;
             }
         });
     }
