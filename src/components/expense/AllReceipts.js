@@ -65,7 +65,8 @@ const AllReceipts = (props) => {
                             <div className={classes['card-footer']}>
                                 <button>See Details</button>
                             </div>
-                        </Card>);
+                        </Card>
+                    );
                 })}
             </div>
         </Fragment>
